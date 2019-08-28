@@ -1,0 +1,4 @@
+There appears to be just one data file with a ton of events, 14G, for the year 2001
+all of those events may have come from the same few days early january:
+  /data/exp/RICE/2001/unbiased/RawData/1/2001-1.rxvolt
+Here, the test file in this directory is an excerpt of that huge file.

@@ -1,0 +1,7 @@
+
+# Ignore files that ROOT compilation makes
+*.so
+*.d
+
+# Other stuff
+*~
