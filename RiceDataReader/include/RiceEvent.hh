@@ -6,7 +6,7 @@
 #include "TCanvas.h"
 #include <vector>
 
-class RiceEvent {
+class RiceEvent : public TObject {
 
  public:
 
@@ -88,6 +88,9 @@ class RiceEvent {
   
   TGraph *_waveformGraphs[_nChannelsMax];
 
+  ClassDef(RiceEvent,1)
 };
+
+ClassImp(RiceEvent)
 
 #endif

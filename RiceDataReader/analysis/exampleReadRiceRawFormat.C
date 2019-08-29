@@ -21,9 +21,9 @@ const TString fileName2011 = "../samples/2011/data-2011236125846-test_74.dat";
 const TString fileName2012 = "../samples/2012/data-2012215093431-ub_72.dat";
 
 // File to run on
-const TString fileName = fileName2000;
+const TString fileName = fileName2005;
 
-void test(){
+void exampleReadRiceRawFormat(){
 
   RiceFileInput riceFile(fileName.Data());
 
