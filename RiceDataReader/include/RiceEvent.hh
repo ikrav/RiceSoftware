@@ -56,6 +56,7 @@ class RiceEvent : public TObject {
   bool isFilled();
   void getRunAndEventNumber(unsigned long int &runNumber, unsigned long int &eventNumber);
   // DAQ trigger modes: reflects DAQ settings.
+  Timestamp getTimestamp();
   bool isGeneralTrigger();
   bool isForcedTrigger();
   // Event types: how event is classified. Unbiased events are taken when the

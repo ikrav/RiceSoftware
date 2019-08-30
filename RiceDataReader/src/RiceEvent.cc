@@ -137,6 +137,10 @@ void RiceEvent::getRunAndEventNumber(unsigned long int &run, unsigned long int &
   event = _eventNumber;
 }
 
+RiceEvent::Timestamp RiceEvent::getTimestamp(){
+  return _utcTimestamp;
+}
+
 bool RiceEvent::isGeneralTrigger(){
   
   if( _triggerMode == TRIG_GENERAL )

@@ -1,0 +1,8 @@
+
+exampleDetector.C: an example program that creates a Detector
+object for a paricular year and demonstrates access to various
+channel parameters. The example also writes the object into a ROOT file.
+
+rootlogon.C loads all necessary libraries and relieas on the
+environment variable RICE_SOFTWARE_DIR to be set to the top 
+directory of this package.

@@ -18,7 +18,8 @@ The package structure:
   for testing purposes.
 
 Installation:
-  Just check this package out from GitHub, go to the analysis/ directory and
+  Just check this package out from GitHub, source the setup.sh file at the top
+directory, go to the analysis/ directory and
   run user code, e.g.
     root -b -q exampleReadRiceRawFormat.C+
   or

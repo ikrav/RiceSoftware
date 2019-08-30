@@ -1,3 +1,4 @@
+#include "Detector.hh"
 #include "RiceEvent.hh"
 #include "RiceFileInput.hh"
 
@@ -38,6 +39,7 @@ void exampleRootify(){
 
   // Loop over events
   int eventsFound = 0;
+  int year = 0;
   while( !riceFile.reachedEndOfFile() ){
 
     eventOut = riceFile.getNextEvent();
@@ -46,12 +48,27 @@ void exampleRootify(){
       break;
     }
     eventsFound++;
+
+    if(eventsFound==1){
+      // Save year on the first event of the file
+      year = eventOut->getTimestamp().year;
+    }
     
     treeOut->Fill();
 
   } // end of the event loop
-  
+
+  Detector *detector = 0;
+  if( eventsFound > 0 ){
+    detector = new Detector(year);
+  }else{
+    detector = new Detector(); // dummy object with no meaningful content
+  }
+
   printf("Finished running over the data file. Found %d events\n", eventsFound);
+
+  if( detector )
+    detector->Write("detector");
 
   treeOut->Write();
   fout.Close();

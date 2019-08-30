@@ -1,3 +1,4 @@
+#include "Detector.hh"
 #include "RiceEvent.hh"
 #include "RiceFileInput.hh"
 
@@ -16,6 +17,13 @@ void exampleReadRiceRootFormat(){
   if( tree == 0 ){
     printf("Failed to find the eventTree\n");
     return;
+  }
+  // Also read the detector configuration object if available
+  Detector *detector = (Detector*)fin->Get("detector");
+  if( !detector ){
+    printf("Failed to find detector configuration object\n");
+  } else {
+    detector->printConfiguration();
   }
 
   // Configure the tree
@@ -45,6 +53,15 @@ void exampleReadRiceRootFormat(){
 
     // See RiceEvent header file for the list of available accessors
 
+  }
+
+  // Some info on the antenna configuration
+  if( detector ){
+    printf("\nDetector configuration object is valid\n");
+    printf("Detector configuration is of the year %d and has %d channels\n",
+	   detector->getYear(), detector->getNumberOfChannels());
+  }else{
+    printf("\nNo valid detector configuration object is found in the input file\n");
   }
 
   fin->Close();
