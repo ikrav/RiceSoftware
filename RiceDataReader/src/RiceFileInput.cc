@@ -68,8 +68,13 @@ bool RiceFileInput::readEventHeader(RiceEvent *event){
 
   unsigned long int eventNumber = -1;
   unsigned long int runNumber = -1;
-  RiceEvent::TriggerMode triggerMode = RiceEvent::UNDEFINED;
+  RiceEvent::TriggerMode triggerMode = RiceEvent::TRIG_UNDEFINED;
+  RiceEvent::EventType   eventType   = RiceEvent::TYPE_UNDEFINED;
+  bool isYear2000 = false;
 
+  //
+  //  PARSE EVENT HEADER INFORMATION 
+  //
   // Read the event header line by line and extract desired information
   bool keepReading = true;
   std::string line;
@@ -103,7 +108,24 @@ bool RiceFileInput::readEventHeader(RiceEvent *event){
       } // end loop over modes
       // If we tried all names but found no match
       if( !matchFound)
-	triggerMode = RiceEvent::UNRECOGNIZED;
+	triggerMode = RiceEvent::TRIG_UNRECOGNIZED;
+
+      // Is this the line with the event classification info?
+    }else if( line.find(patternLookup(EventTypePattern)) != std::string::npos ){   
+      // Determine which of the possible event types it is
+      bool matchFound = false;
+      for(int iType = 0; 
+	  iType < RiceEvent::_nEventTypes; iType++){
+	RiceEvent::EventType type = static_cast<RiceEvent::EventType>(iType);
+	if( line.find( RiceEvent::eventTypeNameLookup( type ) ) != std::string::npos ){
+	  eventType = type;
+	  matchFound = true;
+	  break; // break out of the loop over modes
+	}
+      } // end loop over types
+      // If we tried all names but found no match
+      if( !matchFound)
+	eventType = RiceEvent::TYPE_UNRECOGNIZED;
 
       // Is this the line with the UTC date/time?
     }else if( line.find(patternLookup(DateTimePattern)) != std::string::npos ){   
@@ -113,20 +135,41 @@ bool RiceFileInput::readEventHeader(RiceEvent *event){
       float microsecond;
       // Parse the line
       std::istringstream iss(line);
+      // First, get all info except for the microsecons counter
       if( !(iss >> dummy1 >> year >> dummy2 >> day 
-	    >> dummy3 >> dummy4 >> timeString 
-	    >> dummy5 >> dummy6 >> microsecond ) ){
+	    >> dummy3 >> dummy4 >> timeString ) ){
 	printf("RiceFileInput::readEventHeader: ERROR getting event date and time\n");
 	return result;
       }
-      // Extract hours/minutes/seconds from a string in the format "XX:XX:XX"
-      if( timeString.length() != 8 ){
+      // In year 2000, the year was saved as "00", so adjust that
+      if( year == 0 ){
+	year = 2000;
+	isYear2000 = true;
+      }
+      // Extract time from hours:minutes:seconds format
+      std::string field;
+      std::vector <std::string> fields;
+      std::istringstream timeIss(timeString);
+      while(getline(timeIss, field, ':'))
+	fields.push_back(field);
+      if( fields.size() != 3 ){
 	printf("RiceFileInput::readEventHeader: ERROR parsing the time string\n");
 	return result;
       }
-      hour   = std::atoi(timeString.substr(0, 2).c_str());
-      minute = std::atoi(timeString.substr(3, 2).c_str());
-      second = std::atoi(timeString.substr(6, 2).c_str());
+      hour   = std::atoi(fields[0].c_str());
+      minute = std::atoi(fields[1].c_str());
+      second = std::atoi(fields[2].c_str());
+
+      // Second, get the microseconds field. Note that in the year 2000, the
+      // field was not available. Thus we do the streaming, but do not check 
+      // whether it succeeded. If it fails, the variable will be zero.
+      microsecond = 0;
+      if( !isYear2000 ){
+	if( !(iss >> dummy5 >> dummy6 >> microsecond) ){
+	  printf("RiceFileInput::readEventHeader: ERROR parsing the microseconds value\n");
+	  return result;
+	}
+      }
 
       // Store the date and time
       event->setTimestamp(year, day, hour, minute, second, microsecond);
@@ -146,16 +189,29 @@ bool RiceFileInput::readEventHeader(RiceEvent *event){
       keepReading = false;
     }
   } // end while loop reading the event header
+  //
+  //  END PARSING EVENT HEADER 
+  //
 
   // Get the run number from the file name. The file name is assumed to be
   // of the type <prefix>-<run number>-<other stuff>, so get the second field from the name
   // with delimiter being "-".
   std::istringstream fnameStream(_fileName.Data());
-  std::string str;
-  std::getline(fnameStream, str, '-');
-  std::getline(fnameStream, str, '-');
+  std::string prefix = "20";
+  std::string str1 = "";
+  std::string str2 = "";
+  std::getline(fnameStream, str1, '-'); //dummy call
+  std::getline(fnameStream, str1, '-'); // for years 2001-2012 this yields full run number
+  std::getline(fnameStream, str2, '-'); // for year 2000, this has extra part of run number
+  std::string runNumberString = "";
+  if( !isYear2000 ){
+    runNumberString = str1;
+  }else{
+    printf("here %s  %s  %s\n", prefix.c_str(), str1.c_str(), str2.c_str());
+    runNumberString = prefix + str1 + str2;
+  }
   // now str should contain the run number, convert it to a number
-  std::istringstream runNumberStream(str);
+  std::istringstream runNumberStream(runNumberString);
   if( !( runNumberStream >> runNumber ) ){
     printf("RiceFileInput::readEventHeader: ERROR getting run number\n"); 
     return result;
@@ -163,7 +219,7 @@ bool RiceFileInput::readEventHeader(RiceEvent *event){
 
   // Push the information into the event structure
   event->setHeaderInfo(runNumber, eventNumber,
-		       triggerMode);
+		       triggerMode, eventType);
 
   result = true;
   return result;
@@ -315,6 +371,7 @@ TString RiceFileInput::patternLookup(StringPattern pattern){
   else if( pattern == DateTimePattern    ) result = "Year";
   else if( pattern == HitChannelsStartPattern ) result = "Full hit list:";
   else if( pattern == HitChannelPattern  ) result = "Channel";
+  else if( pattern == EventTypePattern   ) result = "Event is classified as ";
   else {
     printf("RiceFileInput::patternLookup: ERROR undefined pattern\n");
   }

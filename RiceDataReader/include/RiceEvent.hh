@@ -15,8 +15,12 @@ class RiceEvent : public TObject {
   ~RiceEvent();
 
   // Constants, types
-  enum TriggerMode {UNDEFINED=0, GENERAL, FORCED, UNRECOGNIZED}; // approximate list
+  enum TriggerMode {TRIG_UNDEFINED=0, TRIG_GENERAL, TRIG_FORCED, TRIG_UNRECOGNIZED}; // approximate list
   static const int _nTriggerModes = 4;
+
+  enum EventType {TYPE_UNDEFINED=0, TYPE_GENERAL, TYPE_UNBIASED, 
+		  TYPE_VETO, TYPE_EXTERNAL1, TYPE_EXTERNAL2, TYPE_UNRECOGNIZED};
+  static const int _nEventTypes = 7;
 
   struct Timestamp {
     int year;
@@ -39,7 +43,7 @@ class RiceEvent : public TObject {
   
   // Set methods  
   void setHeaderInfo(unsigned long int runNumber, unsigned long int eventNumber,
-		     TriggerMode triggerMode);
+		     TriggerMode triggerMode, EventType eventType);
   void setChannel(int channelIndex, float T0, float dT, float Voffset, float Vres,
 		  std::vector<float> voltageCounts);
   void setNChannelsPresent(int nChannelsPresent);
@@ -51,8 +55,19 @@ class RiceEvent : public TObject {
   // Get methods
   bool isFilled();
   void getRunAndEventNumber(unsigned long int &runNumber, unsigned long int &eventNumber);
+  // DAQ trigger modes: reflects DAQ settings.
   bool isGeneralTrigger();
   bool isForcedTrigger();
+  // Event types: how event is classified. Unbiased events are taken when the
+  // trigger setting is "forced trigger". Other events are taken with the trigger
+  // mode "General" and are classified after having been recorded. They usually could 
+  // be of the sort of Genera, Veto, External-triggered events, etc.
+  bool isUnbiasedEvent();
+  bool isGeneralEvent();
+  bool isVetoEvent();
+  bool isExternalTriggerEvent();
+  EventType getEventType();
+  // Waveforms access
   TGraph *getWaveform(int channelIndex);
   int getChannelsPresent();
   int getChannelsMax();
@@ -62,6 +77,7 @@ class RiceEvent : public TObject {
   // Utility
   void printSummary();
   static TString triggerModeNameLookup(TriggerMode mode);
+  static TString eventTypeNameLookup  (EventType type);
 
  private:
   // Data members
@@ -72,6 +88,7 @@ class RiceEvent : public TObject {
   unsigned long int _eventNumber;
   TriggerMode       _triggerMode;
   Timestamp         _utcTimestamp;
+  EventType         _eventType;
   std::vector<HitInfo> _hits;
 
   static const int _nChannelsMax = 24; // Maximum physically possible number of channels

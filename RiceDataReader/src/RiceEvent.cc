@@ -6,7 +6,7 @@ RiceEvent::RiceEvent(){
   _isFilled = false;
   _runNumber = -1;
   _eventNumber = -1;
-  _triggerMode = UNDEFINED;
+  _triggerMode = TRIG_UNDEFINED;
   
   _nChannelsPresent = 0;
   for(int iChannel=0; iChannel < _nChannelsMax; iChannel++){
@@ -30,10 +30,11 @@ RiceEvent::~RiceEvent(){
 }
 
 void RiceEvent::setHeaderInfo(unsigned long int runNumber, unsigned long int eventNumber,
-			      TriggerMode triggerMode){
+			      TriggerMode triggerMode, EventType eventType){
   _runNumber = runNumber;
   _eventNumber = eventNumber;
   _triggerMode = triggerMode;
+  _eventType   = eventType;
 }
 
 void RiceEvent::setChannel(int channelIndex, float T0, float dT, float Voffset, float Vres,
@@ -122,6 +123,7 @@ void RiceEvent::printSummary()
 	 _utcTimestamp.hour, _utcTimestamp.minute, _utcTimestamp.second,
 	 _utcTimestamp.microsecond);
   printf("   trigger: %s\n", triggerModeNameLookup( _triggerMode ).Data() );
+  printf("   event classified as: %s\n", eventTypeNameLookup( _eventType ).Data() );
   printf("   number of waveforms: %d\n", _nChannelsPresent);
   printf("   hit channels:\n");
   for(uint ichan = 0; ichan < _hits.size(); ichan++){
@@ -137,7 +139,7 @@ void RiceEvent::getRunAndEventNumber(unsigned long int &run, unsigned long int &
 
 bool RiceEvent::isGeneralTrigger(){
   
-  if( _triggerMode == GENERAL )
+  if( _triggerMode == TRIG_GENERAL )
     return true;
   
   return false;
@@ -145,7 +147,7 @@ bool RiceEvent::isGeneralTrigger(){
 
 bool RiceEvent::isForcedTrigger(){
   
-  if( _triggerMode == FORCED )
+  if( _triggerMode == TRIG_FORCED )
     return true;
   
   return false;
@@ -156,12 +158,60 @@ TString RiceEvent::triggerModeNameLookup(TriggerMode mode){
   // The strings below match exactly what is recorded as the trigger mode
   // in RICE data files
   TString result = "blank";
-  if( mode == UNDEFINED ) result = "Undefined";
-  else if( mode == GENERAL   ) result = "General";
-  else if( mode == FORCED    ) result = "FORCED TRIGGER";
+  if( mode == TRIG_UNDEFINED ) result = "Undefined";
+  else if( mode == TRIG_GENERAL   ) result = "General";
+  else if( mode == TRIG_FORCED    ) result = "FORCED TRIGGER";
   else                         result = "Unrecognized";
 
   return result;
+}
+
+TString RiceEvent::eventTypeNameLookup(EventType type){
+
+  // The strings below match exactly what is recorded as the event classification
+  // in RICE data files
+  TString result = "blank";
+  if( type == TYPE_UNDEFINED ) result = "Undefined";
+  else if( type == TYPE_GENERAL   ) result = "General";
+  else if( type == TYPE_UNBIASED  ) result = "Unbiased";
+  else if( type == TYPE_VETO      ) result = "Veto";
+  else if( type == TYPE_EXTERNAL1 ) result = "External trigger line 1";
+  else if( type == TYPE_EXTERNAL2 ) result = "External trigger line 2";
+  else                         result = "Unrecognized";
+
+  return result;
+}
+
+bool RiceEvent::isUnbiasedEvent(){
+  if( _eventType == TYPE_UNBIASED )
+    return true;
+
+  return false;
+}
+
+bool RiceEvent::isGeneralEvent(){
+  if( _eventType == TYPE_GENERAL )
+    return true;
+
+  return false;
+}
+
+bool RiceEvent::isVetoEvent(){
+  if( _eventType == TYPE_VETO )
+    return true;
+
+  return false;
+}
+
+bool RiceEvent::isExternalTriggerEvent(){
+  if( _eventType == TYPE_EXTERNAL1 || _eventType == TYPE_EXTERNAL2 )
+    return true;
+
+  return false;
+}
+
+RiceEvent::EventType RiceEvent::getEventType(){
+  return _eventType;
 }
 
 int RiceEvent::getChannelsPresent(){

@@ -14,7 +14,8 @@ class RiceFileInput {
 		      EventEndMarker, GeneralSeparator,
 		      EventNumberPattern, TriggerModePattern,
 		      DateTimePattern, 
-		      HitChannelsStartPattern, HitChannelPattern};
+		      HitChannelsStartPattern, HitChannelPattern,
+		      EventTypePattern};
 
 
   // Constructor, destructor
