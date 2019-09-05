@@ -7,13 +7,13 @@
   TString riceDir = gSystem->Getenv("RICE_SOFTWARE_DIR");
   TString loadCmd;
 
-  TString loadCmd = TString::Format(".L %s/Detector/src/Detector.cc+",riceDir.Data());
+  loadCmd = TString::Format(".L %s/Detector/src/Detector.cc+",riceDir.Data());
   gROOT->ProcessLine(loadCmd);
 
-  TString loadCmd = TString::Format(".L %s/RiceDataReader/src/RiceEvent.cc+",riceDir.Data());
+  loadCmd = TString::Format(".L %s/RiceDataReader/src/RiceEvent.cc+",riceDir.Data());
   gROOT->ProcessLine(loadCmd);
 
-  TString loadCmd = TString::Format(".L %s/RiceDataReader/src/RiceFileInput.cc+",riceDir.Data());
+  loadCmd = TString::Format(".L %s/RiceDataReader/src/RiceFileInput.cc+",riceDir.Data());
   gROOT->ProcessLine(loadCmd);
 
 }
